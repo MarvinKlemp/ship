@@ -2,6 +2,9 @@
 
 namespace MarvinKlemp\Ship\Cli;
 
+use GuzzleHttp\Client;
+use MarvinKlemp\Ship\HttpClient\GuzzleHttpClient;
+use MarvinKlemp\Ship\PackageNameResolver\InMemoryResolver;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,23 +18,21 @@ class ShipCommand extends Command
             ->setName('install')
             ->setDefinition(
                 array(
-                    new InputArgument('phar', InputArgument::OPTIONAL, 'The name of the phar'),
+                    new InputArgument('package', InputArgument::OPTIONAL, 'The name of the package'),
                 )
             )
             ->setDescription('Install a php phar')
             ->setHelp('');
     }
 
-    /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
-     *
-     * @throws \RuntimeException
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $resolver = new InMemoryResolver();
+        $resolvedName = $resolver->resolveName($input->getArgument('package'));
+
+        $httpClient = new GuzzleHttpClient(new Client());
+        $metadata = $httpClient->downloadMetadata($resolvedName);
+
         return 0;
     }
 }
